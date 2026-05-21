@@ -108,14 +108,23 @@ def extract_bundle(bundle_path, log=None):
 
 def write_torrc():
     """Write a minimal torrc pointing at our data dir."""
+
+    global TOR_SOCKS_PORT
+
+    # automatically find a free port
+    TOR_SOCKS_PORT = find_free_port(9050, 9200)
+
+    set_tor_port(TOR_SOCKS_PORT)
+
     rc = (
-        "SocksPort 9050\n"
+        f"SocksPort {TOR_SOCKS_PORT}\n"
         f"DataDirectory {TOR_DATA}\n"
         f"GeoIPFile {TOR_GEOIP}\n"
         f"GeoIPv6File {TOR_GEOIP6}\n"
         "Log notice stdout\n"
-        "ExitPolicy reject *:*\n"   # client-only, no exit relay
+        "ExitPolicy reject *:*\n"
     )
+
     with open(TOR_RC, "w") as f:
         f.write(rc)
 
