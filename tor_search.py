@@ -45,32 +45,45 @@ TOR_PROXY = {
 REQUEST_TIMEOUT = 40
 CRAWL_DELAY     = 2
 MAX_PAGES       = 500
-MAX_QUEUE       = 2000
+MAX_QUEUE = 2000
 
 
-def find_free_port(start=9150, end=9200):
-    """Return first TCP port in range not currently bound."""
+def find_free_port(start=9050, end=9200):
+    """Return first actually unused TCP port."""
+
     import socket
+
     for port in range(start, end):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            try:
-                s.bind(("127.0.0.1", port))
+
+        test = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            result = test.connect_ex(("127.0.0.1", port))
+
+            if result != 0:
+                test.close()
                 return port
-            except OSError:
-                continue
-    return start
+
+        except Exception:
+            pass
+
+        finally:
+            test.close()
+
+    return 9150
 
 
 def set_tor_port(port):
     """Update global proxy to use chosen port."""
+
     global TOR_SOCKS_PORT, TOR_PROXY
+
     TOR_SOCKS_PORT = port
+
     TOR_PROXY = {
         "http":  f"socks5h://127.0.0.1:{port}",
         "https": f"socks5h://127.0.0.1:{port}",
     }
-
 # ── Tor bundle setup ──────────────────────────────────────────────────────────
 
 def find_bundle():
@@ -111,9 +124,10 @@ def write_torrc():
 
     global TOR_SOCKS_PORT
 
-    # automatically find a free port
+    # find a free local SOCKS port
     TOR_SOCKS_PORT = find_free_port(9050, 9200)
 
+    # update proxy config
     set_tor_port(TOR_SOCKS_PORT)
 
     rc = (
