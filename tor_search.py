@@ -31,11 +31,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH    = os.path.join(SCRIPT_DIR, "tor_index.db")
 TOR_DIR    = os.path.join(SCRIPT_DIR, "tor_bundle")   # extracted here
 TOR_EXE    = os.path.join(TOR_DIR, "tor", "tor.exe")
+import uuid
 import tempfile
 
 TOR_DATA = os.path.join(
     tempfile.gettempdir(),
-    f"torsearch_data_{os.getpid()}"
+    f"torsearch_{uuid.uuid4().hex}"
 )
 TOR_RC     = os.path.join(TOR_DIR, "torrc")
 TOR_GEOIP  = os.path.join(TOR_DIR, "data", "geoip")
@@ -125,15 +126,14 @@ def extract_bundle(bundle_path, log=None):
 
 
 def write_torrc():
-    """Write a minimal torrc pointing at our data dir."""
 
     global TOR_SOCKS_PORT
 
-    # find a free local SOCKS port
     TOR_SOCKS_PORT = find_free_port(9050, 9200)
 
-    # update proxy config
     set_tor_port(TOR_SOCKS_PORT)
+
+    os.makedirs(TOR_DATA, exist_ok=True)
 
     rc = (
         f"SocksPort {TOR_SOCKS_PORT}\n"
