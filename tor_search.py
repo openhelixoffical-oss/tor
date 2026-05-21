@@ -31,7 +31,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH    = os.path.join(SCRIPT_DIR, "tor_index.db")
 TOR_DIR    = os.path.join(SCRIPT_DIR, "tor_bundle")   # extracted here
 TOR_EXE    = os.path.join(TOR_DIR, "tor", "tor.exe")
-TOR_DATA   = os.path.join(TOR_DIR, "data")
+import tempfile
+
+TOR_DATA = os.path.join(
+    tempfile.gettempdir(),
+    f"torsearch_data_{os.getpid()}"
+)
 TOR_RC     = os.path.join(TOR_DIR, "torrc")
 TOR_GEOIP  = os.path.join(TOR_DIR, "data", "geoip")
 TOR_GEOIP6 = os.path.join(TOR_DIR, "data", "geoip6")
