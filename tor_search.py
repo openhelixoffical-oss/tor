@@ -247,23 +247,48 @@ class TorProcess:
 
 # ── Tor connectivity check ────────────────────────────────────────────────────
 
-def check_tor(log=None):
-    """Return (ok: bool, message: str) — hits torproject.org check API."""
+def check_tor(log=None, timeout=90):
+    """
+    Wait until Tor is fully reachable through the SOCKS proxy.
+    Returns (ok, message)
+    """
+
     try:
         import requests
-        r = requests.get(
-            "http://check.torproject.org/api/ip",
-            proxies=TOR_PROXY,
-            timeout=15,
-        )
-        data = r.json()
-        if data.get("IsTor"):
-            return True, "Tor active — exit IP: " + data.get("IP", "unknown")
-        return False, "Proxy reachable but Tor exit not confirmed"
     except ImportError:
-        return False, "requests not installed — run: pip install requests[socks] PySocks"
-    except Exception as e:
-        return False, "Tor proxy not reachable: " + str(e)
+        return (
+            False,
+            "requests not installed — run: pip install requests[socks] PySocks"
+        )
+
+    start = time.time()
+
+    while time.time() - start < timeout:
+
+        try:
+            r = requests.get(
+                "https://check.torproject.org/api/ip",
+                proxies=TOR_PROXY,
+                timeout=15,
+            )
+
+            data = r.json()
+
+            if data.get("IsTor"):
+                return (
+                    True,
+                    "Tor active — exit IP: " + data.get("IP", "unknown")
+                )
+
+        except Exception:
+            pass
+
+        time.sleep(2)
+
+    return (
+        False,
+        "Tor bootstrap timed out"
+    )
 
 
 # ── Crawler ───────────────────────────────────────────────────────────────────
