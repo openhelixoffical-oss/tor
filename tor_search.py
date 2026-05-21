@@ -495,6 +495,35 @@ FONT_MONO    = ("Consolas", 9)
 FONT_CHROME  = ("Segoe UI", 9)
 
 
+TOR_BROWSER_SHORTCUT = r"C:\Users\BradJ\AppData\Roaming\Microsoft\Network\Tor Browser.lnk"
+
+
+def open_in_tor_browser(url):
+    """
+    Open a URL inside the installed Tor Browser shortcut.
+    """
+
+    try:
+        if not os.path.exists(TOR_BROWSER_SHORTCUT):
+            return False, (
+                "Tor Browser shortcut not found:\n\n"
+                + TOR_BROWSER_SHORTCUT
+            )
+
+        subprocess.Popen([
+            "cmd",
+            "/c",
+            "start",
+            "",
+            TOR_BROWSER_SHORTCUT,
+            url
+        ])
+
+        return True, None
+
+    except Exception as e:
+        return False, str(e)
+
 # ── Built-in browser window ───────────────────────────────────────────────────
 
 class BrowserWindow(tk.Toplevel):
